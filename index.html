@@ -6,31 +6,35 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FitTracker">
-    <meta name="theme-color" content="#000000">
     <title>FitTracker - Personal Workout Tracker</title>
     
-    <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'><path d='M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z'/></svg>">
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' fill='%23000'/><path d='M150 108L160 98L150 88L125 113L75 63L88 50L75 37L67 45L59 37L45 51L37 43L29 51L37 59L29 67L37 75L63 49L113 99L88 124L100 136L108 128L116 136L130 122L136 128L144 120L136 112L144 104L130 90Z' fill='white'/></svg>">
-    
-    <!-- CDN Links -->
+    <!-- React -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
         body { 
             margin: 0; 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #000;
-            overflow-x: hidden;
         }
         
-        /* Custom scrollbar for dark theme */
+        /* Loading fallback */
+        .loading {
+            background: #000;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-size: 18px;
+        }
+        
+        /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -41,27 +45,62 @@
             background: #555;
             border-radius: 4px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #777;
-        }
         
         /* Prevent zoom on input focus (iOS) */
         input[type="number"], input[type="date"], input[type="text"] {
             font-size: 16px;
         }
-        
-        /* Smooth animations */
-        * {
-            transition: all 0.2s ease;
-        }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div class="loading">
+            <div>Loading FitTracker...</div>
+        </div>
+    </div>
     
     <script type="text/babel">
+        // Simple Icons (instead of lucide-react to avoid loading issues)
+        const Icons = {
+            Plus: () => React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+                React.createElement('line', { x1: 12, y1: 5, x2: 12, y2: 19 }),
+                React.createElement('line', { x1: 5, y1: 12, x2: 19, y2: 12 })
+            ),
+            X: () => React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+                React.createElement('line', { x1: 18, y1: 6, x2: 6, y2: 18 }),
+                React.createElement('line', { x1: 6, y1: 6, x2: 18, y2: 18 })
+            ),
+            Edit: () => React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+                React.createElement('path', { d: 'M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7' }),
+                React.createElement('path', { d: 'M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z' })
+            ),
+            Trash: () => React.createElement('svg', { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+                React.createElement('polyline', { points: '3,6 5,6 21,6' }),
+                React.createElement('path', { d: 'M19,6V20a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6M8,6V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2V6' })
+            ),
+            Calendar: () => React.createElement('svg', { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+                React.createElement('rect', { x: 3, y: 4, width: 18, height: 18, rx: 2, ry: 2 }),
+                React.createElement('line', { x1: 16, y1: 2, x2: 16, y2: 6 }),
+                React.createElement('line', { x1: 8, y1: 2, x2: 8, y2: 6 }),
+                React.createElement('line', { x1: 3, y1: 10, x2: 21, y2: 10 })
+            ),
+            Dumbbell: ({ size = 24 }) => React.createElement('svg', { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+                React.createElement('path', { d: 'M9 12l6 0' }),
+                React.createElement('path', { d: 'M6 8v8' }),
+                React.createElement('path', { d: 'M18 8v8' }),
+                React.createElement('path', { d: 'M4 6v12' }),
+                React.createElement('path', { d: 'M20 6v12' })
+            ),
+            Check: () => React.createElement('svg', { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+                React.createElement('polyline', { points: '20,6 9,17 4,12' })
+            ),
+            TrendingUp: () => React.createElement('svg', { width: 28, height: 28, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2 },
+                React.createElement('polyline', { points: '23,6 13.5,15.5 8.5,10.5 1,18' }),
+                React.createElement('polyline', { points: '17,6 23,6 23,12' })
+            )
+        };
+
         const { useState, useEffect } = React;
-        const { Plus, Edit3, Trash2, Calendar, Dumbbell, TrendingUp, Save, X, Check, Target, Zap, Award } = lucide;
 
         const WorkoutTracker = () => {
           const [currentDate, setCurrentDate] = useState(new Date().toISOString().split('T')[0]);
@@ -81,24 +120,36 @@
 
           // Load data from localStorage on component mount
           useEffect(() => {
-            const savedWorkouts = localStorage.getItem('workoutData');
-            const savedExercises = localStorage.getItem('exerciseList');
-            
-            if (savedWorkouts) {
-              setWorkouts(JSON.parse(savedWorkouts));
-            }
-            if (savedExercises) {
-              setExercises(JSON.parse(savedExercises));
+            try {
+              const savedWorkouts = localStorage.getItem('workoutData');
+              const savedExercises = localStorage.getItem('exerciseList');
+              
+              if (savedWorkouts) {
+                setWorkouts(JSON.parse(savedWorkouts));
+              }
+              if (savedExercises) {
+                setExercises(JSON.parse(savedExercises));
+              }
+            } catch (error) {
+              console.log('Error loading data:', error);
             }
           }, []);
 
           // Save data to localStorage whenever workouts or exercises change
           useEffect(() => {
-            localStorage.setItem('workoutData', JSON.stringify(workouts));
+            try {
+              localStorage.setItem('workoutData', JSON.stringify(workouts));
+            } catch (error) {
+              console.log('Error saving workouts:', error);
+            }
           }, [workouts]);
 
           useEffect(() => {
-            localStorage.setItem('exerciseList', JSON.stringify(exercises));
+            try {
+              localStorage.setItem('exerciseList', JSON.stringify(exercises));
+            } catch (error) {
+              console.log('Error saving exercises:', error);
+            }
           }, [exercises]);
 
           const getTodaysWorkout = () => {
@@ -123,12 +174,7 @@
             const todaysWorkout = getTodaysWorkout();
             const exerciseData = [...(todaysWorkout[exerciseName] || [])];
             
-            if (field === 'tension') {
-              exerciseData[setIndex][field] = value;
-            } else {
-              exerciseData[setIndex][field] = value;
-            }
-            
+            exerciseData[setIndex][field] = value;
             updateWorkout(exerciseName, exerciseData);
           };
 
@@ -238,388 +284,371 @@
           const renderWorkoutTab = () => {
             const stats = getWorkoutStats();
             
-            return (
-              <div className="space-y-6">
-                {/* Stats Cards */}
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl p-4 text-white shadow-xl border border-gray-600">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Target size={20} />
-                      <span className="text-sm font-medium opacity-90">Exercises</span>
-                    </div>
-                    <div className="text-2xl font-bold">{stats.totalExercises}</div>
-                  </div>
+            return React.createElement('div', { className: 'space-y-6' },
+              // Stats Cards
+              React.createElement('div', { className: 'grid grid-cols-3 gap-3' },
+                React.createElement('div', { className: 'bg-gradient-to-br from-gray-700 to-gray-800 rounded-2xl p-4 text-white shadow-xl border border-gray-600' },
+                  React.createElement('div', { className: 'flex items-center space-x-2 mb-2' },
+                    React.createElement('span', { className: 'text-sm font-medium opacity-90' }, 'Exercises')
+                  ),
+                  React.createElement('div', { className: 'text-2xl font-bold' }, stats.totalExercises)
+                ),
+                React.createElement('div', { className: 'bg-gradient-to-br from-gray-600 to-gray-700 rounded-2xl p-4 text-white shadow-xl border border-gray-500' },
+                  React.createElement('div', { className: 'flex items-center space-x-2 mb-2' },
+                    React.createElement('span', { className: 'text-sm font-medium opacity-90' }, 'Sets')
+                  ),
+                  React.createElement('div', { className: 'text-2xl font-bold' }, stats.totalSets)
+                ),
+                React.createElement('div', { className: 'bg-gradient-to-br from-gray-500 to-gray-600 rounded-2xl p-4 text-white shadow-xl border border-gray-400' },
+                  React.createElement('div', { className: 'flex items-center space-x-2 mb-2' },
+                    React.createElement('span', { className: 'text-sm font-medium opacity-90' }, 'Done')
+                  ),
+                  React.createElement('div', { className: 'text-2xl font-bold' }, stats.completedSets)
+                )
+              ),
+
+              // Date Picker
+              React.createElement('div', { className: 'bg-gray-800 rounded-2xl p-5 shadow-xl border border-gray-600' },
+                React.createElement('div', { className: 'flex items-center space-x-4' },
+                  React.createElement('div', { className: 'bg-gradient-to-br from-gray-600 to-gray-700 p-3 rounded-xl border border-gray-500' },
+                    React.createElement(Icons.Calendar)
+                  ),
+                  React.createElement('div', { className: 'flex-1' },
+                    React.createElement('label', { className: 'text-sm font-medium text-gray-300 block mb-1' }, 'Workout Date'),
+                    React.createElement('input', {
+                      type: 'date',
+                      value: currentDate,
+                      onChange: (e) => setCurrentDate(e.target.value),
+                      className: 'w-full p-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all text-lg font-medium text-white'
+                    })
+                  )
+                )
+              ),
+
+              // Exercise List
+              React.createElement('div', { className: 'space-y-4' },
+                exercises.map(exerciseName => {
+                  const todaysWorkout = getTodaysWorkout();
+                  const exerciseSets = todaysWorkout[exerciseName] || [];
                   
-                  <div className="bg-gradient-to-br from-gray-600 to-gray-700 rounded-2xl p-4 text-white shadow-xl border border-gray-500">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Zap size={20} />
-                      <span className="text-sm font-medium opacity-90">Sets</span>
-                    </div>
-                    <div className="text-2xl font-bold">{stats.totalSets}</div>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-gray-500 to-gray-600 rounded-2xl p-4 text-white shadow-xl border border-gray-400">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Award size={20} />
-                      <span className="text-sm font-medium opacity-90">Done</span>
-                    </div>
-                    <div className="text-2xl font-bold">{stats.completedSets}</div>
-                  </div>
-                </div>
+                  return React.createElement('div', { 
+                    key: exerciseName, 
+                    className: 'bg-gray-800 rounded-2xl p-5 shadow-xl border border-gray-600 overflow-hidden' 
+                  },
+                    React.createElement('div', { className: 'flex items-center justify-between mb-4' },
+                      React.createElement('h3', { className: 'font-bold text-white text-lg' }, exerciseName),
+                      React.createElement('div', { className: 'flex space-x-2' },
+                        React.createElement('button', {
+                          onClick: () => addSetToExercise(exerciseName),
+                          className: 'bg-gradient-to-r from-gray-600 to-gray-700 text-white p-3 rounded-xl hover:from-gray-500 hover:to-gray-600 transition-all transform hover:scale-105 shadow-lg border border-gray-500'
+                        }, React.createElement(Icons.Plus)),
+                        exerciseSets.length > 0 && React.createElement('button', {
+                          onClick: () => deleteExerciseFromWorkout(exerciseName),
+                          className: 'bg-gradient-to-r from-red-600 to-red-700 text-white p-3 rounded-xl hover:from-red-500 hover:to-red-600 transition-all transform hover:scale-105 shadow-lg border border-red-500'
+                        }, React.createElement(Icons.Trash))
+                      )
+                    ),
 
-                {/* Date Picker */}
-                <div className="bg-gray-800 rounded-2xl p-5 shadow-xl border border-gray-600">
-                  <div className="flex items-center space-x-4">
-                    <div className="bg-gradient-to-br from-gray-600 to-gray-700 p-3 rounded-xl border border-gray-500">
-                      <Calendar className="text-white" size={24} />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-sm font-medium text-gray-300 block mb-1">Workout Date</label>
-                      <input
-                        type="date"
-                        value={currentDate}
-                        onChange={(e) => setCurrentDate(e.target.value)}
-                        className="w-full p-3 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all text-lg font-medium text-white"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Exercise List */}
-                <div className="space-y-4">
-                  {exercises.map(exerciseName => {
-                    const todaysWorkout = getTodaysWorkout();
-                    const exerciseSets = todaysWorkout[exerciseName] || [];
-                    
-                    return (
-                      <div key={exerciseName} className="bg-gray-800 rounded-2xl p-5 shadow-xl border border-gray-600 overflow-hidden">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="font-bold text-white text-lg">{exerciseName}</h3>
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => addSetToExercise(exerciseName)}
-                              className="bg-gradient-to-r from-gray-600 to-gray-700 text-white p-3 rounded-xl hover:from-gray-500 hover:to-gray-600 transition-all transform hover:scale-105 shadow-lg border border-gray-500"
-                            >
-                              <Plus size={18} />
-                            </button>
-                            {exerciseSets.length > 0 && (
-                              <button
-                                onClick={() => deleteExerciseFromWorkout(exerciseName)}
-                                className="bg-gradient-to-r from-red-600 to-red-700 text-white p-3 rounded-xl hover:from-red-500 hover:to-red-600 transition-all transform hover:scale-105 shadow-lg border border-red-500"
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {exerciseSets.length === 0 ? (
-                          <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl p-6 text-center border border-gray-600">
-                            <Dumbbell className="mx-auto mb-3 text-gray-400" size={32} />
-                            <p className="text-gray-300 font-medium">No sets recorded</p>
-                            <p className="text-gray-400 text-sm">Tap + to add your first set</p>
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            {exerciseSets.map((set, index) => (
-                              <div key={index} className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl p-4 border border-gray-600">
-                                <div className="flex items-center space-x-3 mb-3">
-                                  <div className="bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold px-3 py-1 rounded-lg text-sm min-w-12 text-center border border-gray-400">
-                                    Set {set.setNumber}
-                                  </div>
-                                  <div className="flex-1 grid grid-cols-3 gap-2">
-                                    <div className="relative">
-                                      <input
-                                        type="number"
-                                        placeholder="0"
-                                        value={set.reps}
-                                        onChange={(e) => updateSet(exerciseName, index, 'reps', e.target.value)}
-                                        className="w-full p-3 bg-gray-600 border-2 border-gray-500 rounded-xl focus:ring-2 focus:ring-gray-400 text-center font-semibold text-lg transition-all text-white"
-                                      />
-                                      <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-400 font-medium">REPS</span>
-                                    </div>
-                                    <div className="relative">
-                                      <input
-                                        type="number"
-                                        step="0.5"
-                                        placeholder="0"
-                                        value={set.weight}
-                                        onChange={(e) => updateSet(exerciseName, index, 'weight', e.target.value)}
-                                        className="w-full p-3 bg-gray-600 border-2 border-gray-500 rounded-xl focus:ring-2 focus:ring-gray-400 text-center font-semibold text-lg transition-all text-white"
-                                      />
-                                      <span className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-400 font-medium">KG</span>
-                                    </div>
-                                    <div className="flex flex-col items-center justify-center">
-                                      <label className="flex items-center space-x-2 cursor-pointer bg-gray-600 p-2 rounded-lg border-2 border-gray-500 hover:border-orange-500 transition-all">
-                                        <input
-                                          type="checkbox"
-                                          checked={set.tension}
-                                          onChange={(e) => updateSet(exerciseName, index, 'tension', e.target.checked)}
-                                          className="w-5 h-5 text-orange-600 rounded focus:ring-orange-500 border-2 bg-gray-700"
-                                        />
-                                        <span className="text-sm font-bold text-orange-400">T</span>
-                                      </label>
-                                      <span className="text-xs text-gray-400 font-medium mt-1">TENSION</span>
-                                    </div>
-                                  </div>
-                                  <button
-                                    onClick={() => deleteSet(exerciseName, index)}
-                                    className="text-red-400 hover:text-red-300 p-2 hover:bg-gray-600 rounded-lg transition-all"
-                                  >
-                                    <X size={18} />
-                                  </button>
-                                </div>
-                                <div className="bg-gray-600 rounded-lg p-3 border border-gray-500 mt-4">
-                                  <div className="text-sm text-gray-200 font-mono text-center">
-                                    {formatSetDisplay(set)}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+                    exerciseSets.length === 0 ? 
+                      React.createElement('div', { className: 'bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl p-6 text-center border border-gray-600' },
+                        React.createElement(Icons.Dumbbell, { size: 32 }),
+                        React.createElement('p', { className: 'text-gray-300 font-medium mt-3' }, 'No sets recorded'),
+                        React.createElement('p', { className: 'text-gray-400 text-sm' }, 'Tap + to add your first set')
+                      ) :
+                      React.createElement('div', { className: 'space-y-3' },
+                        exerciseSets.map((set, index) =>
+                          React.createElement('div', { 
+                            key: index, 
+                            className: 'bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl p-4 border border-gray-600' 
+                          },
+                            React.createElement('div', { className: 'flex items-center space-x-3 mb-3' },
+                              React.createElement('div', { className: 'bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold px-3 py-1 rounded-lg text-sm min-w-12 text-center border border-gray-400' },
+                                `Set ${set.setNumber}`
+                              ),
+                              React.createElement('div', { className: 'flex-1 grid grid-cols-3 gap-2' },
+                                React.createElement('div', { className: 'relative' },
+                                  React.createElement('input', {
+                                    type: 'number',
+                                    placeholder: '0',
+                                    value: set.reps,
+                                    onChange: (e) => updateSet(exerciseName, index, 'reps', e.target.value),
+                                    className: 'w-full p-3 bg-gray-600 border-2 border-gray-500 rounded-xl focus:ring-2 focus:ring-gray-400 text-center font-semibold text-lg transition-all text-white'
+                                  }),
+                                  React.createElement('span', { className: 'absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-400 font-medium' }, 'REPS')
+                                ),
+                                React.createElement('div', { className: 'relative' },
+                                  React.createElement('input', {
+                                    type: 'number',
+                                    step: '0.5',
+                                    placeholder: '0',
+                                    value: set.weight,
+                                    onChange: (e) => updateSet(exerciseName, index, 'weight', e.target.value),
+                                    className: 'w-full p-3 bg-gray-600 border-2 border-gray-500 rounded-xl focus:ring-2 focus:ring-gray-400 text-center font-semibold text-lg transition-all text-white'
+                                  }),
+                                  React.createElement('span', { className: 'absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs text-gray-400 font-medium' }, 'KG')
+                                ),
+                                React.createElement('div', { className: 'flex flex-col items-center justify-center' },
+                                  React.createElement('label', { className: 'flex items-center space-x-2 cursor-pointer bg-gray-600 p-2 rounded-lg border-2 border-gray-500 hover:border-orange-500 transition-all' },
+                                    React.createElement('input', {
+                                      type: 'checkbox',
+                                      checked: set.tension,
+                                      onChange: (e) => updateSet(exerciseName, index, 'tension', e.target.checked),
+                                      className: 'w-5 h-5 text-orange-600 rounded focus:ring-orange-500 border-2 bg-gray-700'
+                                    }),
+                                    React.createElement('span', { className: 'text-sm font-bold text-orange-400' }, 'T')
+                                  ),
+                                  React.createElement('span', { className: 'text-xs text-gray-400 font-medium mt-1' }, 'TENSION')
+                                )
+                              ),
+                              React.createElement('button', {
+                                onClick: () => deleteSet(exerciseName, index),
+                                className: 'text-red-400 hover:text-red-300 p-2 hover:bg-gray-600 rounded-lg transition-all'
+                              }, React.createElement(Icons.X))
+                            ),
+                            React.createElement('div', { className: 'bg-gray-600 rounded-lg p-3 border border-gray-500 mt-4' },
+                              React.createElement('div', { className: 'text-sm text-gray-200 font-mono text-center' },
+                                formatSetDisplay(set)
+                              )
+                            )
+                          )
+                        )
+                      )
+                  );
+                })
+              )
             );
           };
 
           const renderHistoryTab = () => (
-            <div className="space-y-6">
-              <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-2xl p-6 text-white shadow-xl border border-gray-600">
-                <div className="flex items-center space-x-3 mb-2">
-                  <TrendingUp size={28} />
-                  <h2 className="text-2xl font-bold">Workout History</h2>
-                </div>
-                <p className="opacity-90">Track your fitness journey</p>
-              </div>
+            React.createElement('div', { className: 'space-y-6' },
+              React.createElement('div', { className: 'bg-gradient-to-r from-gray-700 to-gray-800 rounded-2xl p-6 text-white shadow-xl border border-gray-600' },
+                React.createElement('div', { className: 'flex items-center space-x-3 mb-2' },
+                  React.createElement(Icons.TrendingUp),
+                  React.createElement('h2', { className: 'text-2xl font-bold' }, 'Workout History')
+                ),
+                React.createElement('p', { className: 'opacity-90' }, 'Track your fitness journey')
+              ),
               
-              {getWorkoutDates().length === 0 ? (
-                <div className="bg-gray-800 rounded-2xl p-8 text-center shadow-xl border border-gray-600">
-                  <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 border border-gray-600">
-                    <Dumbbell className="text-gray-400" size={40} />
-                  </div>
-                  <h3 className="text-xl font-bold text-white mb-2">No Workouts Yet</h3>
-                  <p className="text-gray-400 text-lg">Start logging your exercises to see history here!</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {getWorkoutDates().map(date => (
-                    <div key={date} className="bg-gray-800 rounded-2xl p-5 shadow-xl border border-gray-600">
-                      <div className="flex items-center justify-between mb-4">
-                        <div>
-                          <h3 className="font-bold text-lg text-white">
-                            {new Date(date).toLocaleDateString('en-US', { 
+              getWorkoutDates().length === 0 ? 
+                React.createElement('div', { className: 'bg-gray-800 rounded-2xl p-8 text-center shadow-xl border border-gray-600' },
+                  React.createElement('div', { className: 'bg-gradient-to-r from-gray-700 to-gray-800 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 border border-gray-600' },
+                    React.createElement(Icons.Dumbbell, { size: 40 })
+                  ),
+                  React.createElement('h3', { className: 'text-xl font-bold text-white mb-2' }, 'No Workouts Yet'),
+                  React.createElement('p', { className: 'text-gray-400 text-lg' }, 'Start logging your exercises to see history here!')
+                ) :
+                React.createElement('div', { className: 'space-y-4' },
+                  getWorkoutDates().map(date =>
+                    React.createElement('div', { key: date, className: 'bg-gray-800 rounded-2xl p-5 shadow-xl border border-gray-600' },
+                      React.createElement('div', { className: 'flex items-center justify-between mb-4' },
+                        React.createElement('div', null,
+                          React.createElement('h3', { className: 'font-bold text-lg text-white' },
+                            new Date(date).toLocaleDateString('en-US', { 
                               weekday: 'long', 
                               month: 'short', 
                               day: 'numeric' 
-                            })}
-                          </h3>
-                          <p className="text-gray-400 text-sm">
-                            {new Date(date).getFullYear()}
-                          </p>
-                        </div>
-                        <div className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-4 py-2 rounded-xl font-bold shadow-lg border border-gray-500">
-                          {getTotalSetsForDate(date)} sets
-                        </div>
-                      </div>
+                            })
+                          ),
+                          React.createElement('p', { className: 'text-gray-400 text-sm' },
+                            new Date(date).getFullYear()
+                          )
+                        ),
+                        React.createElement('div', { className: 'bg-gradient-to-r from-gray-600 to-gray-700 text-white px-4 py-2 rounded-xl font-bold shadow-lg border border-gray-500' },
+                          `${getTotalSetsForDate(date)} sets`
+                        )
+                      ),
                       
-                      <div className="space-y-3">
-                        {Object.entries(workouts[date]).map(([exerciseName, sets]) => (
-                          <div key={exerciseName} className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl p-4 border border-gray-600">
-                            <h4 className="font-bold text-white mb-3 flex items-center">
-                              <div className="w-3 h-3 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full mr-3"></div>
-                              {exerciseName}
-                            </h4>
-                            <div className="grid grid-cols-1 gap-2">
-                              {sets.map((set, index) => (
-                                <div key={index} className="bg-gray-600 rounded-lg p-3 border border-gray-500">
-                                  <div className="text-sm font-mono text-gray-200 text-center font-medium">
-                                    {formatSetDisplay(set)}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                      React.createElement('div', { className: 'space-y-3' },
+                        Object.entries(workouts[date]).map(([exerciseName, sets]) =>
+                          React.createElement('div', { key: exerciseName, className: 'bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl p-4 border border-gray-600' },
+                            React.createElement('h4', { className: 'font-bold text-white mb-3 flex items-center' },
+                              React.createElement('div', { className: 'w-3 h-3 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full mr-3' }),
+                              exerciseName
+                            ),
+                            React.createElement('div', { className: 'grid grid-cols-1 gap-2' },
+                              sets.map((set, index) =>
+                                React.createElement('div', { key: index, className: 'bg-gray-600 rounded-lg p-3 border border-gray-500' },
+                                  React.createElement('div', { className: 'text-sm font-mono text-gray-200 text-center font-medium' },
+                                    formatSetDisplay(set)
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+            )
           );
 
           const renderManageTab = () => (
-            <div className="space-y-6">
-              <div className="bg-gradient-to-r from-gray-700 to-gray-800 rounded-2xl p-6 text-white shadow-xl border border-gray-600">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center space-x-3 mb-2">
-                      <Edit3 size={28} />
-                      <h2 className="text-2xl font-bold">Manage Exercises</h2>
-                    </div>
-                    <p className="opacity-90">Customize your workout library</p>
-                  </div>
-                  <button
-                    onClick={() => setShowAddExercise(true)}
-                    className="bg-gray-600/50 backdrop-blur-sm text-white px-4 py-3 rounded-xl hover:bg-gray-500/50 transition-all flex items-center space-x-2 font-medium shadow-lg border border-gray-500"
-                  >
-                    <Plus size={18} />
-                    <span>Add</span>
-                  </button>
-                </div>
-              </div>
+            React.createElement('div', { className: 'space-y-6' },
+              React.createElement('div', { className: 'bg-gradient-to-r from-gray-700 to-gray-800 rounded-2xl p-6 text-white shadow-xl border border-gray-600' },
+                React.createElement('div', { className: 'flex items-center justify-between' },
+                  React.createElement('div', null,
+                    React.createElement('div', { className: 'flex items-center space-x-3 mb-2' },
+                      React.createElement(Icons.Edit),
+                      React.createElement('h2', { className: 'text-2xl font-bold' }, 'Manage Exercises')
+                    ),
+                    React.createElement('p', { className: 'opacity-90' }, 'Customize your workout library')
+                  ),
+                  React.createElement('button', {
+                    onClick: () => setShowAddExercise(true),
+                    className: 'bg-gray-600/50 backdrop-blur-sm text-white px-4 py-3 rounded-xl hover:bg-gray-500/50 transition-all flex items-center space-x-2 font-medium shadow-lg border border-gray-500'
+                  },
+                    React.createElement(Icons.Plus),
+                    React.createElement('span', null, 'Add')
+                  )
+                )
+              ),
 
-              {showAddExercise && (
-                <div className="bg-gray-800 rounded-2xl p-5 shadow-xl border border-gray-600">
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="text"
-                      value={newExerciseName}
-                      onChange={(e) => setNewExerciseName(e.target.value)}
-                      placeholder="Enter exercise name"
-                      className="flex-1 p-4 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all text-lg text-white placeholder-gray-400"
-                      onKeyPress={(e) => e.key === 'Enter' && addNewExercise()}
-                    />
-                    <button
-                      onClick={addNewExercise}
-                      className="bg-gradient-to-r from-gray-600 to-gray-700 text-white p-4 rounded-xl hover:from-gray-500 hover:to-gray-600 transition-all transform hover:scale-105 shadow-lg border border-gray-500"
-                    >
-                      <Check size={20} />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowAddExercise(false);
-                        setNewExerciseName('');
-                      }}
-                      className="bg-gradient-to-r from-red-600 to-red-700 text-white p-4 rounded-xl hover:from-red-500 hover:to-red-600 transition-all transform hover:scale-105 shadow-lg border border-red-500"
-                    >
-                      <X size={20} />
-                    </button>
-                  </div>
-                </div>
-              )}
+              showAddExercise && React.createElement('div', { className: 'bg-gray-800 rounded-2xl p-5 shadow-xl border border-gray-600' },
+                React.createElement('div', { className: 'flex items-center space-x-3' },
+                  React.createElement('input', {
+                    type: 'text',
+                    value: newExerciseName,
+                    onChange: (e) => setNewExerciseName(e.target.value),
+                    placeholder: 'Enter exercise name',
+                    className: 'flex-1 p-4 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all text-lg text-white placeholder-gray-400',
+                    onKeyPress: (e) => e.key === 'Enter' && addNewExercise()
+                  }),
+                  React.createElement('button', {
+                    onClick: addNewExercise,
+                    className: 'bg-gradient-to-r from-gray-600 to-gray-700 text-white p-4 rounded-xl hover:from-gray-500 hover:to-gray-600 transition-all transform hover:scale-105 shadow-lg border border-gray-500'
+                  }, React.createElement(Icons.Check)),
+                  React.createElement('button', {
+                    onClick: () => {
+                      setShowAddExercise(false);
+                      setNewExerciseName('');
+                    },
+                    className: 'bg-gradient-to-r from-red-600 to-red-700 text-white p-4 rounded-xl hover:from-red-500 hover:to-red-600 transition-all transform hover:scale-105 shadow-lg border border-red-500'
+                  }, React.createElement(Icons.X))
+                )
+              ),
 
-              <div className="space-y-3">
-                {exercises.map((exercise, index) => (
-                  <div key={exercise} className="bg-gray-800 rounded-2xl p-5 shadow-xl border border-gray-600">
-                    {editingExercise === exercise ? (
-                      <div className="flex items-center space-x-3">
-                        <input
-                          type="text"
-                          defaultValue={exercise}
-                          onKeyPress={(e) => {
+              React.createElement('div', { className: 'space-y-3' },
+                exercises.map((exercise, index) =>
+                  React.createElement('div', { key: exercise, className: 'bg-gray-800 rounded-2xl p-5 shadow-xl border border-gray-600' },
+                    editingExercise === exercise ?
+                      React.createElement('div', { className: 'flex items-center space-x-3' },
+                        React.createElement('input', {
+                          type: 'text',
+                          defaultValue: exercise,
+                          onKeyPress: (e) => {
                             if (e.key === 'Enter') {
                               editExerciseName(exercise, e.target.value);
                             }
-                          }}
-                          className="flex-1 p-4 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all text-lg text-white"
-                          autoFocus
-                        />
-                        <button
-                          onClick={(e) => {
+                          },
+                          className: 'flex-1 p-4 bg-gray-700 border-2 border-gray-600 rounded-xl focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all text-lg text-white',
+                          autoFocus: true
+                        }),
+                        React.createElement('button', {
+                          onClick: (e) => {
                             const input = e.target.parentElement.querySelector('input');
                             editExerciseName(exercise, input.value);
-                          }}
-                          className="bg-gradient-to-r from-gray-600 to-gray-700 text-white p-4 rounded-xl hover:from-gray-500 hover:to-gray-600 transition-all transform hover:scale-105 shadow-lg border border-gray-500"
-                        >
-                          <Check size={20} />
-                        </button>
-                        <button
-                          onClick={() => setEditingExercise(null)}
-                          className="bg-gradient-to-r from-red-600 to-red-700 text-white p-4 rounded-xl hover:from-red-500 hover:to-red-600 transition-all transform hover:scale-105 shadow-lg border border-red-500"
-                        >
-                          <X size={20} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="bg-gradient-to-r from-gray-600 to-gray-700 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center text-sm border border-gray-500">
-                            {index + 1}
-                          </div>
-                          <span className="font-semibold text-white text-lg">{exercise}</span>
-                        </div>
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => setEditingExercise(exercise)}
-                            className="text-gray-300 hover:text-white p-3 hover:bg-gray-700 rounded-xl transition-all"
-                          >
-                            <Edit3 size={18} />
-                          </button>
-                          <button
-                            onClick={() => deleteExercise(exercise)}
-                            className="text-red-400 hover:text-red-300 p-3 hover:bg-gray-700 rounded-xl transition-all"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+                          },
+                          className: 'bg-gradient-to-r from-gray-600 to-gray-700 text-white p-4 rounded-xl hover:from-gray-500 hover:to-gray-600 transition-all transform hover:scale-105 shadow-lg border border-gray-500'
+                        }, React.createElement(Icons.Check)),
+                        React.createElement('button', {
+                          onClick: () => setEditingExercise(null),
+                          className: 'bg-gradient-to-r from-red-600 to-red-700 text-white p-4 rounded-xl hover:from-red-500 hover:to-red-600 transition-all transform hover:scale-105 shadow-lg border border-red-500'
+                        }, React.createElement(Icons.X))
+                      ) :
+                      React.createElement('div', { className: 'flex items-center justify-between' },
+                        React.createElement('div', { className: 'flex items-center space-x-4' },
+                          React.createElement('div', { className: 'bg-gradient-to-r from-gray-600 to-gray-700 text-white font-bold w-10 h-10 rounded-xl flex items-center justify-center text-sm border border-gray-500' },
+                            index + 1
+                          ),
+                          React.createElement('span', { className: 'font-semibold text-white text-lg' }, exercise)
+                        ),
+                        React.createElement('div', { className: 'flex space-x-2' },
+                          React.createElement('button', {
+                            onClick: () => setEditingExercise(exercise),
+                            className: 'text-gray-300 hover:text-white p-3 hover:bg-gray-700 rounded-xl transition-all'
+                          }, React.createElement(Icons.Edit)),
+                          React.createElement('button', {
+                            onClick: () => deleteExercise(exercise),
+                            className: 'text-red-400 hover:text-red-300 p-3 hover:bg-gray-700 rounded-xl transition-all'
+                          }, React.createElement(Icons.Trash))
+                        )
+                      )
+                  )
+                )
+              )
+            )
           );
 
-          return (
-            <div className="min-h-screen bg-black">
-              {/* Header */}
-              <div className="bg-gradient-to-r from-gray-800 to-gray-900 shadow-2xl border-b border-gray-700">
-                <div className="max-w-md mx-auto px-4 py-6">
-                  <h1 className="text-3xl font-bold text-white flex items-center">
-                    <div className="bg-gray-700/50 backdrop-blur-sm p-3 rounded-xl mr-4 border border-gray-600">
-                      <Dumbbell className="text-white" size={32} />
-                    </div>
-                    <div>
-                      <div>FitTracker</div>
-                      <div className="text-sm opacity-80 font-normal">Your Personal Gym Companion</div>
-                    </div>
-                  </h1>
-                </div>
-              </div>
+          return React.createElement('div', { className: 'min-h-screen bg-black' },
+            // Header
+            React.createElement('div', { className: 'bg-gradient-to-r from-gray-800 to-gray-900 shadow-2xl border-b border-gray-700' },
+              React.createElement('div', { className: 'max-w-md mx-auto px-4 py-6' },
+                React.createElement('h1', { className: 'text-3xl font-bold text-white flex items-center' },
+                  React.createElement('div', { className: 'bg-gray-700/50 backdrop-blur-sm p-3 rounded-xl mr-4 border border-gray-600' },
+                    React.createElement(Icons.Dumbbell, { size: 32 })
+                  ),
+                  React.createElement('div', null,
+                    React.createElement('div', null, 'FitTracker'),
+                    React.createElement('div', { className: 'text-sm opacity-80 font-normal' }, 'Your Personal Gym Companion')
+                  )
+                )
+              )
+            ),
 
-              {/* Navigation */}
-              <div className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-10">
-                <div className="max-w-md mx-auto px-4">
-                  <div className="flex space-x-1 py-2">
-                    {[
-                      { id: 'workout', label: 'Workout', icon: Dumbbell, gradient: 'from-gray-600 to-gray-700' },
-                      { id: 'history', label: 'History', icon: TrendingUp, gradient: 'from-gray-600 to-gray-700' },
-                      { id: 'manage', label: 'Manage', icon: Edit3, gradient: 'from-gray-600 to-gray-700' }
-                    ].map(tab => (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex-1 py-4 px-4 text-sm font-bold rounded-2xl transition-all flex items-center justify-center space-x-2 ${
-                          activeTab === tab.id
-                            ? `bg-gradient-to-r ${tab.gradient} text-white shadow-xl transform scale-105 border border-gray-500`
-                            : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
-                        }`}
-                      >
-                        <tab.icon size={18} />
-                        <span>{tab.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+            // Navigation
+            React.createElement('div', { className: 'bg-gray-900/80 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-10' },
+              React.createElement('div', { className: 'max-w-md mx-auto px-4' },
+                React.createElement('div', { className: 'flex space-x-1 py-2' },
+                  [
+                    { id: 'workout', label: 'Workout', icon: Icons.Dumbbell },
+                    { id: 'history', label: 'History', icon: Icons.TrendingUp },
+                    { id: 'manage', label: 'Manage', icon: Icons.Edit }
+                  ].map(tab =>
+                    React.createElement('button', {
+                      key: tab.id,
+                      onClick: () => setActiveTab(tab.id),
+                      className: `flex-1 py-4 px-4 text-sm font-bold rounded-2xl transition-all flex items-center justify-center space-x-2 ${
+                        activeTab === tab.id
+                          ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white shadow-xl transform scale-105 border border-gray-500'
+                          : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+                      }`
+                    },
+                      React.createElement(tab.icon),
+                      React.createElement('span', null, tab.label)
+                    )
+                  )
+                )
+              )
+            ),
 
-              {/* Content */}
-              <div className="max-w-md mx-auto px-4 py-6">
-                {activeTab === 'workout' && renderWorkoutTab()}
-                {activeTab === 'history' && renderHistoryTab()}
-                {activeTab === 'manage' && renderManageTab()}
-              </div>
-            </div>
+            // Content
+            React.createElement('div', { className: 'max-w-md mx-auto px-4 py-6' },
+              activeTab === 'workout' && renderWorkoutTab(),
+              activeTab === 'history' && renderHistoryTab(),
+              activeTab === 'manage' && renderManageTab()
+            )
           );
         };
 
+        // Test if React is working
+        console.log('React:', typeof React);
+        console.log('ReactDOM:', typeof ReactDOM);
+        
         // Render the app
-        ReactDOM.render(<WorkoutTracker />, document.getElementById('root'));
+        try {
+          ReactDOM.render(React.createElement(WorkoutTracker), document.getElementById('root'));
+          console.log('App rendered successfully!');
+        } catch (error) {
+          console.error('Error rendering app:', error);
+          document.getElementById('root').innerHTML = `
+            <div style="color: white; padding: 20px; text-align: center;">
+              <h1>Error loading FitTracker</h1>
+              <p>Please check the browser console for details.</p>
+              <p>Error: ${error.message}</p>
+            </div>
+          `;
+        }
     </script>
 </body>
 </html>
